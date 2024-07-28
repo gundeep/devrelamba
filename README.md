@@ -7,7 +7,7 @@ This is a simple Aleo program to act as a ATM hightlighting the use of Aleo's as
 1. Clone the repository
 
 ```bash
-git clone https://github.com/devrelambas1989/aleo-atm.git
+git clone https://github.com/gundeep/devrelamba.git
 ```
 
 2. Create some Money, using create function
