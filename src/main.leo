@@ -9,6 +9,7 @@ record Money {
     amount: u64,   //  How much it is. 
 }
 
+// create money out of thin air (like the central bank)
 transition create(owner: address, amount: u64) -> Money {
     assert_eq(self.caller, aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px);
     return Money {
@@ -18,10 +19,9 @@ transition create(owner: address, amount: u64) -> Money {
 }
 
 // Handles deposit transactions.
-    // Accepts money for deposit and returns updated account information.
+async transition deposit(money: Money, amount: u64) -> (Money, Future) {
     // - `money` : Record that you want to deposit money to.
     // - `amount`: Amount to be deposited.
-async transition deposit(money: Money, amount: u64) -> (Money, Future) {
     // Checks if the caller is the owner of the account.
     assert_eq(self.caller, money.owner);
     let difference: u64 = money.amount - amount;
