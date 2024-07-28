@@ -1,13 +1,14 @@
 # devrelambas1989.aleo
 
-## Build Guide
+SimpleATM is simple dApp that can we used to deposit and withdraw money from the ATM.
 
-To compile this Aleo program, run:
-```bash
-snarkvm build
-```
+## How to run
+The App assumes that account holder X has a balance of 100 Euros. 
+There is a record called Money.
 
-To execute this Aleo program, run:
-```bash
-snarkvm run hello
-```
+
+// create money out of thin air (just like central banks do)
+leo run create aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t 100u64  
+
+
+

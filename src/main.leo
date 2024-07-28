@@ -1,40 +1,67 @@
-// The 'devrelambas1989' program.
+// SIMPLE ATM TRANSACTIONS
 
-// ATM transactions
+program devrelambas1989.aleo {
 
-// The AccountHolder record datatype.
-record accountHolder {
-    owner: address,
-    amount: u64,
+// Defines ATM transactions
+// Record Keep track of money.
+record Money {
+    owner: address, // Who owns it
+    amount: u64,   //  How much it is. 
 }
-// store the amount on chain;
-mapping balances: field => u64;
 
-// Deposit money to ATM.
-    // Returns a new Token with the remaining amount of money.
-    // - `token` : A record containing tokens to deposit.
-    // - `amount`: The amount of tokens to deposit.
-async transition deposit(token: Token, amount: u64) -> (Token, Future) {
-    let difference: u64 = token.amount - amount;
+transition create(owner: address, amount: u64) -> Money {
+    assert_eq(self.caller, aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px);
+    return Money {
+        owner: owner,
+        amount: amount,
+    };
+}
 
-    let remaining: Token = Token {
-        owner: token.owner,
+// Handles deposit transactions.
+    // Accepts money for deposit and returns updated account information.
+    // - `money` : Record that you want to deposit money to.
+    // - `amount`: Amount to be deposited.
+async transition deposit(money: Money, amount: u64) -> (Money, Future) {
+    // Checks if the caller is the owner of the account.
+    assert_eq(self.caller, money.owner);
+    let difference: u64 = money.amount - amount;
+
+    let remaining: Money = Money {
+        owner: money.owner,
         amount: difference,
     };
 
-    // Compute the hash of the token owner.
-    let hash: field = BHP256::hash_to_field(token.owner);
-
-    return (remaining, finalize_deposit(hash, amount));
+    // Generates a hash for the account owner.
+    let hash: field = BHP256::hash_to_field(money.owner);
+    return (remaining, commit_deposit(hash, amount));
 }
 
+// To Store the balances on-chain.
+mapping balance: field => u64;
 
+    // Commits the deposit amount to the on-chain state.
+    // - `hash`  : Owner's account hash.
+    // - `amount`: Deposit amount.
+    async function commit_deposit(hash: field, amount: u64) {
+        let current_amount: u64 = Mapping::get_or_use(balance, hash, 0u64);
+        Mapping::set(balance, hash, current_amount + amount);
+    }
+    
+    // Processes withdrawal transactions.
+    // - `recipient`: Account address for withdrawal.
+    // - `amount`   : Withdrawal amount.
+    async transition withdraw(recipient: address, amount: u64) -> (Money, Future) {
+        assert_eq(self.caller, aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px);
+        let hash: field = BHP256::hash_to_field(recipient);
+        let token: Money = Money { owner: recipient, amount: amount};
+        return (token, commit_withdraw(hash, amount));
+    }
 
-
-let a: u16 = 475u16;
-program devrelambas1989.aleo {
-    transition main(public a: u32, b: u32) -> u32 {
-        let c: u32 = a + b;
-        return c;
+    // Updates the on-chain state for withdrawals.
+    // - `hash`  : Account owner's hash.
+    // - `amount`: Withdrawal amount.
+    async function commit_withdraw(hash: field, amount: u64) {
+        let current_amount: u64 = Mapping::get_or_use(balance, hash, 0u64);
+        Mapping::set(balance, hash, current_amount - amount);
     }
 }
